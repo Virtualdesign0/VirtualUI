@@ -17,6 +17,7 @@ export type Descriptor = {
 }
 
 local registry: { [string]: Descriptor } = {}
+local descriptorPropertiesByClass: { [string]: { [string]: boolean } } = {}
 
 local function propertyMap(value: unknown): PropertyMap
 	return value :: PropertyMap
@@ -211,6 +212,14 @@ local function register(name: string, descriptor: Descriptor)
 		Resolve = descriptor.Resolve,
 	}
 	registry[name] = snapshot
+	local classProperties = descriptorPropertiesByClass[descriptor.ClassName]
+	if classProperties == nil then
+		classProperties = {}
+		descriptorPropertiesByClass[descriptor.ClassName] = classProperties
+	end
+	for _, propertyName in properties do
+		classProperties[propertyName] = true
+	end
 	table.freeze(properties)
 	table.freeze(defaults)
 	table.freeze(aliases)
@@ -228,6 +237,14 @@ end
 
 function PseudoPropertyRegistry.IsRegistered(name: string): boolean
 	return registry[name] ~= nil
+end
+
+function PseudoPropertyRegistry.IsDescriptorProperty(
+	className: string,
+	propertyName: string
+): boolean
+	local classProperties = descriptorPropertiesByClass[className]
+	return classProperties ~= nil and classProperties[propertyName] == true
 end
 
 function PseudoPropertyRegistry.Resolve(descriptor: Descriptor, value: unknown): PropertyMap
