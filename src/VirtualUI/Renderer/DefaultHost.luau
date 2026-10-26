@@ -13,6 +13,14 @@ function DefaultHost.CreateInstance(className: string): Instance
 	return Instance.new(className)
 end
 
+function DefaultHost.SupportsProperty(instance: Instance, propertyName: string): boolean
+	local dynamic = (instance :: unknown) :: DynamicInstance
+	local success = pcall(function()
+		return dynamic[propertyName]
+	end)
+	return success
+end
+
 function DefaultHost.WriteProperty(instance: Instance, propertyName: string, value: unknown)
 	local dynamic = (instance :: unknown) :: DynamicInstance
 	dynamic[propertyName] = value
@@ -32,7 +40,10 @@ function DefaultHost.ConnectEvent(
 	if typeof(signal) ~= "RBXScriptSignal" then
 		error(`{instance.ClassName}.{eventName} is not a connectable event`, 2)
 	end
-	return (signal :: RBXScriptSignal):Connect(callback)
+	-- Through `any`: the guard above proves this is a signal, but the value
+	-- came out of a dynamic index whose type still includes nil, and a direct
+	-- cast from a nil-carrying type to RBXScriptSignal is rejected as unrelated.
+	return ((signal :: any) :: RBXScriptSignal):Connect(callback)
 end
 
 function DefaultHost.DestroyInstance(instance: Instance)
