@@ -91,9 +91,9 @@ function Portal.GetInstance<HostInstance>(self: Portal<HostInstance>): HostInsta
 	if self.Destroyed then
 		error("Attempted to access a destroyed Portal", 2)
 	end
-	local instance = Renderer.GetFirstRenderedInstance(self._rendered)
+	local instance: HostInstance? = Renderer.GetFirstRenderedInstance(self._rendered)
 	assert(instance ~= nil, "Portal must retain at least one rendered root")
-	return instance
+	return instance :: HostInstance
 end
 
 function Portal.GetInstances<HostInstance>(self: Portal<HostInstance>): { HostInstance }
@@ -117,7 +117,7 @@ function Portal.SetTarget<HostInstance>(self: Portal<HostInstance>, target: Host
 	if target == nil then
 		error("Portal target cannot be nil", 2)
 	end
-	self._target = target
+	self._target = target :: HostInstance
 	Renderer.ParentRendered(self._rendered, target, self._host)
 	Profiler.Increment("PortalRetargets")
 end
