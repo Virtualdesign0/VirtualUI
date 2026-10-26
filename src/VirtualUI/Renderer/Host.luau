@@ -2,6 +2,7 @@
 
 export type Host<HostInstance, HostConnection> = {
 	CreateInstance: (className: string) -> HostInstance,
+	SupportsProperty: ((instance: HostInstance, propertyName: string) -> boolean)?,
 	WriteProperty: (instance: HostInstance, propertyName: string, value: unknown) -> (),
 	SetParent: (instance: HostInstance, parent: HostInstance?) -> (),
 	ConnectEvent: (
