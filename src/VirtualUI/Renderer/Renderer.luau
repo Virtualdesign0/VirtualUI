@@ -219,7 +219,7 @@ function Renderer.OrderRendered<HostInstance, HostConnection>(
 	>,
 	startOrder: number
 ): number
-	local instances = Renderer.GetRenderedInstances(rendered)
+	local instances: {HostInstance} = Renderer.GetRenderedInstances(rendered)
 	local setChildOrder = host.SetChildOrder
 	if setChildOrder ~= nil then
 		for offset, instance in instances do
@@ -289,8 +289,15 @@ function Renderer.Create<Properties>(className: string, properties: Properties?,
 			end
 
 			if PseudoPropertyRegistry.IsRegistered(propertyName) then
-				PseudoPropertyRenderer.Apply(instance, propertyName, value, host, scope)
-				continue
+				local supportsProperty = host.SupportsProperty
+				local isNativeProperty = PseudoPropertyRegistry.IsDescriptorProperty(
+					className,
+					propertyName
+				) or (supportsProperty ~= nil and supportsProperty(instance, propertyName))
+				if not isNativeProperty then
+					PseudoPropertyRenderer.Apply(instance, propertyName, value, host, scope)
+					continue
+				end
 			end
 
 			local eventName = EventResolver.Resolve(propertyName)
